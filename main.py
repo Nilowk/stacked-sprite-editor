@@ -13,19 +13,22 @@ class Input:
         self.pos = pos
         self.width = width
         self.height = height
+        self.font = pg.font.SysFont("Comic Sans MS", self.height - 8)
+        self.img = self.font.render(self.num, True, (255, 255, 255))
         self.surf = pg.Surface([width, height])
         self.selected = False
 
     def draw(self):
-        font = pg.font.SysFont("Comic Sans MS", self.height - 8)
-        img = font.render(self.num, True, (255, 255, 255))
         pg.draw.rect(self.surf, (255, 255, 255), (0, 0, self.width, self.height))
         pg.draw.rect(self.surf, (0, 0, 30), (2, 2, self.width - 4, self.height - 4))
-        self.surf.blit(img, ((self.width / 2) - (img.get_width() / 2), (self.height / 2) - (img.get_height() / 2)))
+        self.surf.blit(self.img, ((self.width / 2) - (self.img.get_width() / 2), (self.height / 2) - (self.img.get_height() / 2)))
         self.app.screen.blit(self.surf, self.pos)
 
     def update(self):
         pass
+
+    def render(self):
+        self.img = self.font.render(self.num, True, (255, 255, 255))
 
     def check_events(self, event):
         if event.type == pg.MOUSEBUTTONDOWN:
@@ -42,10 +45,12 @@ class Input:
             if self.selected:
                 if event.key == pg.K_BACKSPACE:
                     self.num = self.num[0:-1]
+                    self.render()
                 elif pg.key.name(event.key)[1:-1].isdigit():
                     next_num = self.num + pg.key.name(event.key)[1:-1]
                     if int(next_num) <= 255:
                         self.num = next_num
+                        self.render()
 
 
 class ImageButton:
@@ -54,18 +59,21 @@ class ImageButton:
         self.pos = pos
         self.width = width
         self.height = height
+        self.font = pg.font.SysFont("Comic Sans MS", self.height - 8)
         self.index = index
         self.grid = grid
+        self.img = self.font.render("stack " + str(self.index + 1), True, (255, 255, 255))
         self.surf = pg.Surface([width, height])
 
     def update(self):
         self.grid = self.manager.app.canvas.grid
 
+    def render(self):
+        self.img = self.font.render("stack " + str(self.index + 1), True, (255, 255, 255))
+
     def draw(self):
-        font = pg.font.SysFont("Comic Sans MS", self.height - 8)
-        img = font.render("stack " + str(self.index + 1), True, (255, 255, 255))
         self.surf.fill((50, 50, 50) if self.manager.app.canvas.stack != self.index else (30, 30, 30))
-        self.surf.blit(img, ((self.width / 2) - (img.get_width() / 2), (self.height / 2) - (img.get_height() / 2)))
+        self.surf.blit(self.img, ((self.width / 2) - (self.img.get_width() / 2), (self.height / 2) - (self.img.get_height() / 2)))
         self.manager.surf.blit(self.surf, self.pos)
 
     def check_events(self, event):
@@ -88,16 +96,16 @@ class AddButton:
         self.pos = pos
         self.width = width
         self.height = height
+        self.font = pg.font.SysFont("Comic Sans MS", self.height)
+        self.img = self.font.render("+", True, (255, 255, 255))
         self.surf = pg.Surface([width, height])
 
     def update(self):
         pass
 
     def draw(self):
-        font = pg.font.SysFont("Comic Sans MS", self.height)
-        img = font.render("+", True, (255, 255, 255))
         self.surf.fill((50, 50, 50))
-        self.surf.blit(img, (7, -7))
+        self.surf.blit(self.img, (7, -7))
         self.manager.surf.blit(self.surf, self.pos)
 
     def check_events(self, event):
@@ -122,16 +130,16 @@ class RemoveButton:
         self.pos = pos
         self.width = width
         self.height = height
+        self.font = pg.font.SysFont("Comic Sans MS", self.height)
+        self.img = self.font.render("-", True, (255, 255, 255))
         self.surf = pg.Surface([width, height])
 
     def update(self):
         pass
 
     def draw(self):
-        font = pg.font.SysFont("Comic Sans MS", self.height)
-        img = font.render("-", True, (255, 255, 255))
         self.surf.fill((50, 50, 50))
-        self.surf.blit(img, (7, -7))
+        self.surf.blit(self.img, (7, -7))
         self.manager.surf.blit(self.surf, self.pos)
 
     def check_events(self, event):
@@ -157,15 +165,15 @@ class UpButton:
         self.width = width
         self.height = height
         self.surf = pg.Surface([width, height])
+        self.icon = pg.image.load("./icons/up-icon.png").convert_alpha()
+        self.icon = pg.transform.scale(self.icon, (self.width - 8, self.height - 8))
 
     def update(self):
         pass
 
     def draw(self):
-        icon = pg.image.load("./icons/up-icon.png").convert_alpha()
-        icon = pg.transform.scale(icon, (self.width - 8, self.height - 8))
         self.surf.fill((50, 50, 50))
-        self.surf.blit(icon, ((self.width / 2) - (icon.get_width() / 2), (self.height / 2) - (icon.get_height() / 2)))
+        self.surf.blit(self.icon, ((self.width / 2) - (self.icon.get_width() / 2), (self.height / 2) - (self.icon.get_height() / 2)))
         self.manager.surf.blit(self.surf, self.pos)
 
     def check_events(self, event):
@@ -187,15 +195,15 @@ class DownButton:
         self.width = width
         self.height = height
         self.surf = pg.Surface([width, height])
+        self.icon = pg.image.load("./icons/down-icon.png").convert_alpha()
+        self.icon = pg.transform.scale(self.icon, (self.width - 8, self.height - 8))
 
     def update(self):
         pass
 
     def draw(self):
-        icon = pg.image.load("./icons/down-icon.png").convert_alpha()
-        icon = pg.transform.scale(icon, (self.width - 8, self.height - 8))
         self.surf.fill((50, 50, 50))
-        self.surf.blit(icon, ((self.width / 2) - (icon.get_width() / 2), (self.height / 2) - (icon.get_height() / 2)))
+        self.surf.blit(self.icon, ((self.width / 2) - (self.icon.get_width() / 2), (self.height / 2) - (self.icon.get_height() / 2)))
         self.manager.surf.blit(self.surf, self.pos)
 
     def check_events(self, event):
@@ -238,6 +246,7 @@ class Manager:
             if self.image_buttons_interval[0] <= index <= self.image_buttons_interval[1]:
                 index = index - self.image_buttons_interval[0]
                 stack.pos = (5, 30 * index + 5)
+                self.image_buttons[index].render()
 
     def draw(self):
         self.surf.fill((100, 100, 100))
@@ -284,17 +293,13 @@ class Canvas:
                 if self.grid[y][x][3] == 0:
                     if self.stack > 0:
                         if self.app.manager.image_buttons[self.stack - 1].grid[y][x][3] == 0:
-                            box = pg.Surface([BLOCK_SIZE - SPACE * 2, BLOCK_SIZE - SPACE * 2])
-                            box.fill((0, 0, 0))
-                            self.surf.blit(box, (BLOCK_SIZE * x + SPACE, BLOCK_SIZE * y + SPACE))
+                            gfxdraw.box(self.surf, (BLOCK_SIZE * x + SPACE, BLOCK_SIZE * y + SPACE, BLOCK_SIZE - SPACE * 2, BLOCK_SIZE - SPACE * 2), (0, 0, 0))
                         else:
                             c = self.app.manager.image_buttons[self.stack - 1].grid[y][x]
                             co = (c[0], c[1], c[2], c[3] / 4)
                             gfxdraw.box(self.surf, (BLOCK_SIZE * x, BLOCK_SIZE * y, BLOCK_SIZE, BLOCK_SIZE), co)
                     else:
-                        box = pg.Surface([BLOCK_SIZE - SPACE * 2, BLOCK_SIZE - SPACE * 2])
-                        box.fill((0, 0, 0))
-                        self.surf.blit(box, (BLOCK_SIZE * x + SPACE, BLOCK_SIZE * y + SPACE))
+                        gfxdraw.box(self.surf, (BLOCK_SIZE * x + SPACE, BLOCK_SIZE * y + SPACE, BLOCK_SIZE - SPACE * 2, BLOCK_SIZE - SPACE * 2), (0, 0, 0))
                 else:
                     gfxdraw.box(self.surf, (BLOCK_SIZE * x, BLOCK_SIZE * y, BLOCK_SIZE, BLOCK_SIZE), self.grid[y][x])
 
