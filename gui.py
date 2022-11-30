@@ -1,6 +1,9 @@
+import math
+
 from pygame import gfxdraw
 from buttons import *
 from settings import *
+from PIL import Image
 
 
 class Canvas:
@@ -47,10 +50,13 @@ class Canvas:
                 pos = (pg.mouse.get_pos()[0] - self.surf_pos[0], pg.mouse.get_pos()[1] - self.surf_pos[1])
                 if not pos[0] < 0 and not pos[1] < 0:
                     if not pos[0] > GRID_WIDTH * BLOCK_SIZE and not pos[1] > GRID_HEIGHT * BLOCK_SIZE:
+                        x = int(pos[0] // BLOCK_SIZE)
+                        y = int(pos[1] // BLOCK_SIZE)
                         if self.mod == 0:
-                            self.grid[int(pos[1] // BLOCK_SIZE)][int(pos[0] // BLOCK_SIZE)] = self.color
+                            self.grid[y][x] = self.color
                         elif self.mod == 1:
-                            self.grid[int(pos[1] // BLOCK_SIZE)][int(pos[0] // BLOCK_SIZE)] = (0, 0, 0, 0)
+                            self.grid[y][x] = (0, 0, 0, 0)
+                        self.app.manager.stack_buttons[self.stack].update_grid(x, y)
 
 
 class GuiElement:
@@ -69,6 +75,49 @@ class GuiElement:
 
     def check_events(self, event):
         pass
+
+
+class RenderWindow(GuiElement):
+    def __init__(self, app, pos: tuple, width: int, height: int):
+        super().__init__(app, pos, width, height)
+        self.image = Image.new("RGBA", (GRID_WIDTH, GRID_HEIGHT), (0, 0, 0, 0))
+        self.angle = 0
+        self.layer_array = self.get_layer_array()
+
+    def get_angle(self):
+        self.angle = -math.degrees(self.app.time)
+
+    def update(self):
+        self.get_angle()
+
+    def get_layer_array(self):
+        img_surf = pygame.image.fromstring(self.image.tobytes(), self.image.size, self.image.mode).convert_alpha()
+        img_surf = pg.transform.scale(img_surf, (img_surf.get_width() * 15, img_surf.get_height() * 15))
+        layer_array = []
+        for y in range(0, img_surf.get_height(), img_surf.get_height() // len(self.app.manager.stack_buttons)):
+            sprite = img_surf.subsurface((0, y, img_surf.get_width(), img_surf.get_height() // len(self.app.manager.stack_buttons)))
+            layer_array.append(sprite)
+        return layer_array[::-1]
+
+    def reload(self, x, y):
+        color = self.app.canvas.grid[y][x]
+        img_pos = (x, GRID_HEIGHT * self.app.canvas.stack + y)
+        self.image.putpixel(img_pos, color)
+        self.layer_array = self.get_layer_array()
+
+    def reload_stack(self):
+        stack_len = len(self.app.manager.stack_buttons)
+        self.image = Image.new("RGBA", (GRID_WIDTH, GRID_HEIGHT * stack_len), (0, 0, 0, 0))
+        for i, stack_button in enumerate(self.app.manager.stack_buttons):
+            self.image.paste(stack_button.image, (0, GRID_HEIGHT * i))
+        self.layer_array = self.get_layer_array()
+
+    def draw(self):
+        self.surf.fill((0, 0, 0, 255))
+        for i, layer in enumerate(self.layer_array):
+            layer = pg.transform.rotate(layer, self.angle)
+            self.surf.blit(layer, ((self.width / 2) - (layer.get_width() / 2), (self.height / 2) - (layer.get_height() / 2) + i * 10))
+        super().draw()
 
 
 class Manager(GuiElement):

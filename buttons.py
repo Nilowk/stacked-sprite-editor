@@ -1,6 +1,7 @@
 import pygame as pg
 import pygame.transform
 from settings import *
+from PIL import Image
 
 
 class Button:
@@ -56,14 +57,17 @@ class StackButton(Button):
     def __init__(self, manager, pos: tuple, width: int, height: int, index: int):
         super().__init__(manager.app, pos, width, height)
         self.manager = manager
+        self.image = Image.new("RGBA", (GRID_WIDTH, GRID_HEIGHT), (0, 0, 0, 0))
         self.index = index
         self.font = pg.font.SysFont("Comic Sans MS", self.height - 8)
         self.img = self.font.render("stack " + str(self.index + 1), True, (255, 255, 255))
         self.grid = [[(0, 0, 0, 0) for x in range(GRID_WIDTH)] for y in range(GRID_HEIGHT)]
         self.surf = pg.Surface([width, height])
 
-    def update_grid(self):
+    def update_grid(self, x, y):
         self.grid = self.manager.app.canvas.grid
+        self.image.putpixel((x, y), self.grid[y][x])
+        self.app.render_window.reload(x, y)
 
     def render(self):
         self.img = self.font.render("stack " + str(self.index + 1), True, (255, 255, 255))
@@ -81,11 +85,6 @@ class StackButton(Button):
                     if not pos[0] > self.width and not pos[1] > self.height:
                         self.manager.app.canvas.stack = self.index
                         self.manager.app.canvas.grid = self.grid
-                pos = (pg.mouse.get_pos()[0] - self.manager.app.canvas.surf_pos[0], pg.mouse.get_pos()[1] - self.manager.app.canvas.surf_pos[1])
-                if not pos[0] < 0 and not pos[1] < 0:
-                    if not pos[0] > GRID_WIDTH * BLOCK_SIZE and not pos[1] > GRID_HEIGHT * BLOCK_SIZE:
-                        if self.manager.app.canvas.stack == self.index:
-                            self.update_grid()
 
 
 class ManagerButton(Button):
@@ -120,6 +119,7 @@ class AddButton(ManagerButton):
                             self.manager.stack_buttons_interval[1] = len(self.manager.stack_buttons) - 1
                         self.manager.reload_stack_index()
                         self.manager.app.canvas.grid = self.manager.stack_buttons[self.manager.app.canvas.stack].grid
+                        self.app.render_window.reload_stack()
 
 
 class RemoveButton(ManagerButton):
@@ -141,6 +141,7 @@ class RemoveButton(ManagerButton):
                                 self.manager.stack_buttons_interval[1] -= 1
                             self.manager.app.canvas.grid = self.manager.stack_buttons[self.manager.app.canvas.stack].grid
                             self.manager.reload_stack_index()
+                            self.app.render_window.reload_stack()
 
 
 class UpButton(ManagerButton):

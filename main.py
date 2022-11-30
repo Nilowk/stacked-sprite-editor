@@ -1,4 +1,5 @@
 import pygame as pg
+import pygame.image
 from pygame import gfxdraw
 import inspect
 from buttons import *
@@ -12,12 +13,14 @@ class App:
         pg.font.init()
         self.screen = pg.display.set_mode(size=WIN_SIZE)
         self.clock = pg.time.Clock()
+        self.time = 0
         self.paint_button = PaintButton(self, (10, 100), 30, 30)
         self.rubber_button = RubberButton(self, (50, 100), 30, 30)
         self.canvas = Canvas(self)
         self.manager = Manager(self, (410, HEIGHT - 300), 200, 300)
         self.color_selector = ColorSelector(self, (0, 0), 130, 40)
         self.canvas.update_color()
+        self.render_window = RenderWindow(self, (800, 250), 400, 400)
 
     def update(self):
         self.clock.tick(MAX_FPS)
@@ -26,6 +29,7 @@ class App:
         self.canvas.update()
         self.manager.update()
         self.color_selector.update()
+        self.render_window.update()
         pg.display.set_caption(f'{self.clock.get_fps() :.1f}')
 
     def draw(self):
@@ -35,6 +39,7 @@ class App:
         self.canvas.draw()
         self.manager.draw()
         self.color_selector.draw()
+        self.render_window.draw()
         pg.display.flip()
 
     def run(self):
@@ -48,6 +53,8 @@ class App:
                 self.canvas.check_events(event)
                 self.manager.check_events(event)
                 self.color_selector.check_events(event)
+                self.render_window.check_events(event)
+            self.time = pg.time.get_ticks() * 0.001
             self.update()
             self.draw()
 
